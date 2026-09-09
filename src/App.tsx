@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-type Tab = 'overview' | 'architecture' | 'airplay' | 'receiver' | 'renderer' | 'build' | 'code';
+type Tab = 'overview' | 'architecture' | 'airplay' | 'receiver' | 'renderer' | 'build' | 'code' | 'apk';
 
 function App() {
   const [activeTab, setActiveTab] = useState<Tab>('overview');
@@ -14,6 +14,7 @@ function App() {
     { id: 'renderer', label: 'Рендеринг', icon: 'fa-tv' },
     { id: 'build', label: 'Сборка', icon: 'fa-hammer' },
     { id: 'code', label: 'Код', icon: 'fa-code' },
+    { id: 'apk', label: 'Сборка APK', icon: 'fa-box-archive' },
   ];
 
   return (
@@ -68,6 +69,7 @@ function App() {
         {activeTab === 'renderer' && <RendererSection />}
         {activeTab === 'build' && <BuildSection />}
         {activeTab === 'code' && <CodeSection codeTab={codeTab} setCodeTab={setCodeTab} />}
+        {activeTab === 'apk' && <ApkBuildSection />}
       </main>
 
       {/* Footer */}
@@ -1823,6 +1825,603 @@ function CodeBlock({ language, code }: { language: string; code: string }) {
         <code className="text-gray-300">{code}</code>
       </pre>
     </div>
+  );
+}
+
+function ApkBuildSection() {
+  return (
+    <div className="space-y-8">
+      <h2 className="text-2xl font-bold flex items-center gap-3">
+        <i className="fas fa-box-archive text-amber-400"></i>
+        Сборка APK файла
+      </h2>
+
+      {/* Intro */}
+      <div className="bg-gradient-to-br from-amber-900/30 to-orange-900/30 rounded-2xl p-8 border border-amber-700/30">
+        <p className="text-gray-300 text-lg leading-relaxed">
+          Чтобы получить готовый <span className="text-amber-400 font-semibold">.apk</span> файл, 
+          который можно установить на Android TV, нужно пройти несколько шагов: 
+          от установки Android Studio до финальной сборки с подписью.
+        </p>
+      </div>
+
+      {/* Step 1 */}
+      <StepCard
+        number={1}
+        title="Установка Android Studio"
+        color="blue"
+      >
+        <div className="space-y-4">
+          <p className="text-gray-300">
+            Скачайте и установите Android Studio с официального сайта:
+          </p>
+          <a
+            href="https://developer.android.com/studio"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg transition-colors"
+          >
+            <i className="fas fa-download"></i>
+            developer.android.com/studio
+          </a>
+          <div className="bg-gray-900 rounded-lg p-4 mt-4">
+            <h4 className="font-bold text-sm text-blue-400 mb-2">Требования:</h4>
+            <ul className="space-y-1 text-sm text-gray-400">
+              <li>• Windows 10/11 (64-bit), macOS 10.14+, или Linux</li>
+              <li>• 8 GB RAM (рекомендуется 16 GB)</li>
+              <li>• 8 GB свободного места на диске</li>
+              <li>• Разрешение экрана 1280×800 минимум</li>
+            </ul>
+          </div>
+          <div className="bg-gray-900 rounded-lg p-4">
+            <h4 className="font-bold text-sm text-blue-400 mb-2">При первом запуске:</h4>
+            <ol className="space-y-1 text-sm text-gray-400 list-decimal list-inside">
+              <li>Выберите "Standard" установку</li>
+              <li>Дождитесь загрузки SDK (это займёт время)</li>
+              <li>Примите лицензионные соглашения</li>
+            </ol>
+          </div>
+        </div>
+      </StepCard>
+
+      {/* Step 2 */}
+      <StepCard
+        number={2}
+        title="Создание нового проекта"
+        color="purple"
+      >
+        <div className="space-y-4">
+          <ol className="space-y-3 text-gray-300">
+            <li className="flex items-start gap-3">
+              <span className="w-6 h-6 bg-purple-600 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">1</span>
+              <span>Откройте Android Studio → <b>File → New → New Project</b></span>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="w-6 h-6 bg-purple-600 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">2</span>
+              <span>Выберите шаблон <b>"TV Activity"</b> (или "Empty Activity" для начала)</span>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="w-6 h-6 bg-purple-600 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">3</span>
+              <div>
+                Заполните поля:
+                <div className="bg-gray-900 rounded-lg p-3 mt-2 text-sm">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div><span className="text-gray-500">Name:</span> ScreenMirror</div>
+                    <div><span className="text-gray-500">Package:</span> com.example.screenmirror</div>
+                    <div><span className="text-gray-500">Language:</span> Kotlin</div>
+                    <div><span className="text-gray-500">Min SDK:</span> API 26 (Android 8.0)</div>
+                    <div><span className="text-gray-500">Build config:</span> Groovy DSL</div>
+                  </div>
+                </div>
+              </div>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="w-6 h-6 bg-purple-600 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">4</span>
+              <span>Нажмите <b>Finish</b> и дождитесь завершения синхронизации Gradle</span>
+            </li>
+          </ol>
+        </div>
+      </StepCard>
+
+      {/* Step 3 */}
+      <StepCard
+        number={3}
+        title="Добавление исходного кода"
+        color="green"
+      >
+        <div className="space-y-4">
+          <p className="text-gray-300">
+            Скопируйте все файлы из раздела <b>"Код"</b> в ваш проект:
+          </p>
+          <div className="bg-gray-900 rounded-lg p-4 font-mono text-sm">
+            <div className="text-gray-500 mb-2"># Структура файлов для копирования:</div>
+            <div className="text-green-400">app/src/main/java/com/example/screenmirror/</div>
+            <div className="text-gray-400 pl-4">├── MainActivity.kt</div>
+            <div className="text-gray-400 pl-4">├── AirPlayService.kt</div>
+            <div className="text-gray-400 pl-4">├── airplay/</div>
+            <div className="text-gray-400 pl-8">├── AirPlayServer.kt</div>
+            <div className="text-gray-400 pl-8">├── RtspHandler.kt</div>
+            <div className="text-gray-400 pl-8">├── SDPParser.kt</div>
+            <div className="text-gray-400 pl-8">├── MirrorSession.kt</div>
+            <div className="text-gray-400 pl-8">└── PairingManager.kt</div>
+            <div className="text-gray-400 pl-4">├── network/</div>
+            <div className="text-gray-400 pl-8">├── MDNSAdvertiser.kt</div>
+            <div className="text-gray-400 pl-8">├── RTPReceiver.kt</div>
+            <div className="text-gray-400 pl-8">└── RTPPacket.kt</div>
+            <div className="text-gray-400 pl-4">├── codec/</div>
+            <div className="text-gray-400 pl-8">├── H264Decoder.kt</div>
+            <div className="text-gray-400 pl-8">├── AACDecoder.kt</div>
+            <div className="text-gray-400 pl-8">└── H264FrameAssembler.kt</div>
+            <div className="text-gray-400 pl-4">└── render/</div>
+            <div className="text-gray-400 pl-8">├── VideoRenderer.kt</div>
+            <div className="text-gray-400 pl-8">└── AudioRenderer.kt</div>
+          </div>
+          <div className="bg-yellow-900/20 border border-yellow-700/50 rounded-lg p-4">
+            <p className="text-yellow-400 text-sm flex items-start gap-2">
+              <i className="fas fa-lightbulb mt-0.5"></i>
+              <span>В Android Studio: правый клик на папке <code className="bg-gray-700 px-1 rounded">java</code> → New → Package для создания подпапок</span>
+            </p>
+          </div>
+        </div>
+      </StepCard>
+
+      {/* Step 4 */}
+      <StepCard
+        number={4}
+        title="Настройка зависимостей (build.gradle)"
+        color="orange"
+      >
+        <div className="space-y-4">
+          <p className="text-gray-300">
+            Откройте файл <code className="bg-gray-700 px-2 py-0.5 rounded text-orange-300">app/build.gradle</code> и замените его содержимое:
+          </p>
+          <CodeBlock
+            language="groovy"
+            code={`plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+}
+
+android {
+    namespace 'com.example.screenmirror'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.example.screenmirror"
+        minSdk 26
+        targetSdk 34
+        versionCode 1
+        versionName "1.0.0"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile(
+                'proguard-android-optimize.txt'
+            ), 'proguard-rules.pro'
+        }
+        debug {
+            // Debug-сборка без минификации
+            minifyEnabled false
+            applicationIdSuffix ".debug"
+            debuggable true
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+
+    // Для Android TV — только landscape
+    buildFeatures {
+        viewBinding true
+    }
+}
+
+dependencies {
+    // mDNS для обнаружения устройств
+    implementation 'org.jmdns:jmdns:3.5.8'
+    
+    // Netty для RTP/RTSP сервера
+    implementation 'io.netty:netty-all:4.1.100.Final'
+    
+    // Криптография для AirPlay pairing
+    implementation 'org.bouncycastle:bcprov-jdk18on:1.76'
+    
+    // AndroidX
+    implementation 'androidx.core:core-ktx:1.12.0'
+    implementation 'androidx.leanback:leanback:1.0.0'
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.6.2'
+    
+    // Coroutines
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'
+}`}
+          />
+          <p className="text-gray-300">
+            После изменения нажмите <b>"Sync Now"</b> в верхней части Android Studio.
+          </p>
+        </div>
+      </StepCard>
+
+      {/* Step 5 - THE MAIN STEP */}
+      <StepCard
+        number={5}
+        title="Сборка APK — 3 способа"
+        color="amber"
+        isMain
+      >
+        <div className="space-y-6">
+          {/* Method A */}
+          <div className="bg-gray-900 rounded-xl p-6 border border-gray-700">
+            <h4 className="font-bold text-lg text-amber-400 mb-3 flex items-center gap-2">
+              <span className="w-8 h-8 bg-amber-600 rounded-lg flex items-center justify-center text-sm font-bold">A</span>
+              Через Android Studio (GUI) — самый простой способ
+            </h4>
+            <div className="space-y-3 text-gray-300">
+              <div className="flex items-start gap-3">
+                <i className="fas fa-arrow-right text-amber-400 mt-1"></i>
+                <div>
+                  <b>Debug APK</b> (для тестирования):
+                  <div className="text-sm text-gray-400 mt-1">
+                    Меню: <code className="bg-gray-700 px-1 rounded">Build → Build Bundle(s) / APK(s) → Build APK(s)</code>
+                  </div>
+                  <div className="text-sm text-green-400 mt-1">
+                    ✓ Результат: <code className="bg-gray-700 px-1 rounded">app/build/outputs/apk/debug/app-debug.apk</code>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <i className="fas fa-arrow-right text-amber-400 mt-1"></i>
+                <div>
+                  <b>Release APK</b> (для публикации):
+                  <div className="text-sm text-gray-400 mt-1">
+                    Меню: <code className="bg-gray-700 px-1 rounded">Build → Generate Signed Bundle / APK</code>
+                  </div>
+                  <div className="text-sm text-gray-400 mt-1">
+                    → Выберите "APK" → Next → Создайте/выберите keystore → Next → "release" → Finish
+                  </div>
+                  <div className="text-sm text-green-400 mt-1">
+                    ✓ Результат: <code className="bg-gray-700 px-1 rounded">app/build/outputs/apk/release/app-release.apk</code>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Method B */}
+          <div className="bg-gray-900 rounded-xl p-6 border border-gray-700">
+            <h4 className="font-bold text-lg text-amber-400 mb-3 flex items-center gap-2">
+              <span className="w-8 h-8 bg-amber-600 rounded-lg flex items-center justify-center text-sm font-bold">B</span>
+              Через терминал (Gradle Wrapper)
+            </h4>
+            <p className="text-gray-400 text-sm mb-3">
+              Откройте терминал в Android Studio (<code className="bg-gray-700 px-1 rounded">View → Tool Windows → Terminal</code>) или системный терминал в корне проекта:
+            </p>
+            <div className="space-y-4">
+              <div>
+                <div className="text-sm text-gray-500 mb-1"># Debug APK (без подписи, для тестирования):</div>
+                <CodeBlock
+                  language="bash"
+                  code={`# Windows (Command Prompt):
+gradlew.bat assembleDebug
+
+# Windows (PowerShell) / macOS / Linux:
+./gradlew assembleDebug
+
+# Результат:
+# app/build/outputs/apk/debug/app-debug.apk`}
+                />
+              </div>
+              <div>
+                <div className="text-sm text-gray-500 mb-1"># Release APK (нужен keystore):</div>
+                <CodeBlock
+                  language="bash"
+                  code={`# Сначала создайте keystore (один раз):
+keytool -genkey -v -keystore release-key.jks \\
+  -keyalg RSA -keysize 2048 -validity 10000 \\
+  -alias screen-mirror
+
+# Затем соберите release:
+./gradlew assembleRelease
+
+# Результат:
+# app/build/outputs/apk/release/app-release.apk`}
+                />
+              </div>
+              <div>
+                <div className="text-sm text-gray-500 mb-1"># Универсальный APK (все архитектуры):</div>
+                <CodeBlock
+                  language="bash"
+                  code={`./gradlew assembleUniversalRelease
+
+# Или для конкретной архитектуры:
+./gradlew assembleArm64Release   # ARM64 (большинство TV)
+./gradlew assembleX86Release     # x86 (эмуляторы)`}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Method C */}
+          <div className="bg-gray-900 rounded-xl p-6 border border-gray-700">
+            <h4 className="font-bold text-lg text-amber-400 mb-3 flex items-center gap-2">
+              <span className="w-8 h-8 bg-amber-600 rounded-lg flex items-center justify-center text-sm font-bold">C</span>
+              Через CI/CD (GitHub Actions)
+            </h4>
+            <p className="text-gray-400 text-sm mb-3">
+              Для автоматической сборки при каждом push в репозиторий:
+            </p>
+            <CodeBlock
+              language="yaml"
+              code={`# .github/workflows/build-apk.yml
+name: Build APK
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: gradle
+    
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+    
+    - name: Build Debug APK
+      run: ./gradlew assembleDebug
+    
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: ScreenMirror-Debug
+        path: app/build/outputs/apk/debug/app-debug.apk`}
+            />
+          </div>
+        </div>
+      </StepCard>
+
+      {/* Step 6 */}
+      <StepCard
+        number={6}
+        title="Подпись APK (для Release)"
+        color="pink"
+      >
+        <div className="space-y-4">
+          <p className="text-gray-300">
+            Для публикации приложения или установки на чужие устройства APK нужно подписать:
+          </p>
+          
+          <div className="bg-gray-900 rounded-lg p-4">
+            <h4 className="font-bold text-sm text-pink-400 mb-2">1. Создание keystore файла:</h4>
+            <CodeBlock
+              language="bash"
+              code={`keytool -genkey -v \\
+  -keystore my-release-key.jks \\
+  -keyalg RSA \\
+  -keysize 2048 \\
+  -validity 10000 \\
+  -alias screen-mirror
+
+# Вам нужно будет задать:
+# - пароль для keystore
+# - имя и организацию`}
+            />
+          </div>
+
+          <div className="bg-gray-900 rounded-lg p-4">
+            <h4 className="font-bold text-sm text-pink-400 mb-2">2. Добавьте в build.gradle:</h4>
+            <CodeBlock
+              language="groovy"
+              code={`android {
+    signingConfigs {
+        release {
+            storeFile file('../my-release-key.jks')
+            storePassword System.getenv("KEYSTORE_PASSWORD") ?: "your_password"
+            keyAlias "screen-mirror"
+            keyPassword System.getenv("KEY_PASSWORD") ?: "your_password"
+        }
+    }
+    
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile(
+                'proguard-android-optimize.txt'
+            ), 'proguard-rules.pro'
+        }
+    }
+}`}
+            />
+          </div>
+
+          <div className="bg-yellow-900/20 border border-yellow-700/50 rounded-lg p-4">
+            <p className="text-yellow-400 text-sm flex items-start gap-2">
+              <i className="fas fa-shield-halved mt-0.5"></i>
+              <span>
+                <b>Важно:</b> Никогда не коммитьте .jks файл и пароли в Git! 
+                Добавьте в <code className="bg-gray-700 px-1 rounded">.gitignore</code>:
+                <br />
+                <code className="bg-gray-700 px-1 rounded text-xs">*.jks</code>,
+                <code className="bg-gray-700 px-1 rounded text-xs ml-1">keystore.properties</code>
+              </span>
+            </p>
+          </div>
+        </div>
+      </StepCard>
+
+      {/* Step 7 */}
+      <StepCard
+        number={7}
+        title="Установка APK на Android TV"
+        color="green"
+      >
+        <div className="space-y-4">
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="bg-gray-900 rounded-lg p-4">
+              <h4 className="font-bold text-green-400 mb-2 flex items-center gap-2">
+                <i className="fas fa-usb"></i>
+                Способ 1: USB-флешка
+              </h4>
+              <ol className="space-y-2 text-sm text-gray-300 list-decimal list-inside">
+                <li>Скопируйте .apk на USB-флешку</li>
+                <li>Вставьте в Android TV</li>
+                <li>Откройте файловый менеджер на TV</li>
+                <li>Найдите APK и нажмите для установки</li>
+                <li>Разрешите установку из неизвестных источников</li>
+              </ol>
+            </div>
+            <div className="bg-gray-900 rounded-lg p-4">
+              <h4 className="font-bold text-green-400 mb-2 flex items-center gap-2">
+                <i className="fas fa-wifi"></i>
+                Способ 2: ADB по сети
+              </h4>
+              <ol className="space-y-2 text-sm text-gray-300 list-decimal list-inside">
+                <li>Включите ADB на TV: Настройки → О ТВ → 7 раз на "Build number"</li>
+                <li>Настройки → Для разработчиков → включите ADB</li>
+                <li>Узнайте IP телевизора</li>
+              </ol>
+              <CodeBlock
+                language="bash"
+                code={`# На компьютере:
+adb connect 192.168.1.XX:5555
+adb install app-debug.apk`}
+              />
+            </div>
+          </div>
+          <div className="bg-gray-900 rounded-lg p-4">
+            <h4 className="font-bold text-green-400 mb-2 flex items-center gap-2">
+              <i className="fas fa-play"></i>
+              Способ 3: Запуск из Android Studio
+            </h4>
+            <p className="text-gray-300 text-sm">
+              Если TV подключён по ADB — просто нажмите кнопку <b>▶ Run</b> в Android Studio. 
+              Приложение автоматически соберётся и установится на TV.
+            </p>
+          </div>
+        </div>
+      </StepCard>
+
+      {/* Step 8 */}
+      <StepCard
+        number={8}
+        title="Решение типичных проблем"
+        color="red"
+      >
+        <div className="space-y-4">
+          <TroubleshootItem
+            problem="Ошибка: 'SDK location not found'"
+            solution="Создайте файл local.properties в корне проекта:&#10;sdk.dir=/Users/ваш_пользователь/Library/Android/sdk&#10;(или путь к SDK на вашей системе)"
+          />
+          <TroubleshootItem
+            problem="Ошибка: 'Could not resolve org.jmdns:jmdns:3.5.8'"
+            solution="Убедитесь, что в корневом build.gradle есть:&#10;repositories { google(); mavenCentral() }&#10;И нажмите Sync Project with Gradle Files"
+          />
+          <TroubleshootItem
+            problem="Ошибка: 'Execution failed for task :app:mergeDebugResources'"
+            solution="Очистите проект: Build → Clean Project, затем Build → Rebuild Project"
+          />
+          <TroubleshootItem
+            problem="APK не устанавливается на TV"
+            solution="Проверьте:&#10;1. minSdk ≤ версия Android на TV&#10;2. Разрешена ли установка из неизвестных источников&#10;3. Достаточно ли памяти на TV"
+          />
+          <TroubleshootItem
+            problem="Приложение вылетает при запуске"
+            solution="Смотрите логи:&#10;adb logcat | grep ScreenMirror&#10;Частая причина — отсутствие разрешений в Manifest"
+          />
+          <TroubleshootItem
+            problem="iPhone не видит TV"
+            solution="Проверьте:&#10;1. Оба устройства в одной WiFi сети&#10;2. Порт 5353 (mDNS) не заблокирован роутером&#10;3. MulticastLock получен в коде"
+          />
+        </div>
+      </StepCard>
+
+      {/* Final summary */}
+      <div className="bg-gradient-to-r from-green-900/30 to-emerald-900/30 rounded-2xl p-8 border border-green-700/30">
+        <h3 className="text-xl font-bold text-green-400 mb-4 flex items-center gap-2">
+          <i className="fas fa-check-circle"></i>
+          Итоговая шпаргалка
+        </h3>
+        <div className="bg-gray-900 rounded-xl p-6 font-mono text-sm">
+          <div className="text-gray-500"># Быстрая сборка debug APK:</div>
+          <div className="text-green-400 mt-1">cd ScreenMirror</div>
+          <div className="text-green-400">./gradlew assembleDebug</div>
+          <div className="text-gray-500 mt-3"># Установка на TV по ADB:</div>
+          <div className="text-green-400">adb connect 192.168.1.XX:5555</div>
+          <div className="text-green-400">adb install app/build/outputs/apk/debug/app-debug.apk</div>
+          <div className="text-gray-500 mt-3"># Или через Android Studio:</div>
+          <div className="text-green-400">Build → Build APK(s) → найди в app/build/outputs/apk/debug/</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function StepCard({ number, title, color, children, isMain }: { number: number; title: string; color: string; children: React.ReactNode; isMain?: boolean }) {
+  const borderColors: Record<string, string> = {
+    blue: 'border-blue-700/50',
+    purple: 'border-purple-700/50',
+    green: 'border-green-700/50',
+    orange: 'border-orange-700/50',
+    amber: 'border-amber-700/50',
+    pink: 'border-pink-700/50',
+    red: 'border-red-700/50',
+  };
+  const bgColors: Record<string, string> = {
+    blue: 'bg-blue-600',
+    purple: 'bg-purple-600',
+    green: 'bg-green-600',
+    orange: 'bg-orange-600',
+    amber: 'bg-amber-600',
+    pink: 'bg-pink-600',
+    red: 'bg-red-600',
+  };
+
+  return (
+    <div className={`bg-gray-800 rounded-xl p-6 border ${borderColors[color]} ${isMain ? 'ring-2 ring-amber-500/50' : ''}`}>
+      <h3 className="text-lg font-bold mb-4 flex items-center gap-3">
+        <span className={`w-8 h-8 ${bgColors[color]} rounded-lg flex items-center justify-center text-sm font-bold`}>
+          {number}
+        </span>
+        {title}
+        {isMain && <span className="text-xs bg-amber-600 text-white px-2 py-0.5 rounded-full ml-2">КЛЮЧЕВОЙ ШАГ</span>}
+      </h3>
+      {children}
+    </div>
+  );
+}
+
+function TroubleshootItem({ problem, solution }: { problem: string; solution: string }) {
+  return (
+    <details className="bg-gray-900 rounded-lg border border-gray-700 overflow-hidden group">
+      <summary className="p-4 cursor-pointer flex items-center gap-3 hover:bg-gray-800 transition-colors">
+        <i className="fas fa-bug text-red-400"></i>
+        <span className="text-red-300 font-medium text-sm">{problem}</span>
+        <i className="fas fa-chevron-down text-gray-500 ml-auto group-open:rotate-180 transition-transform"></i>
+      </summary>
+      <div className="px-4 pb-4 pt-0 text-sm text-gray-300 whitespace-pre-line border-t border-gray-700 mt-0 pt-3">
+        {solution}
+      </div>
+    </details>
   );
 }
 
