@@ -2,12 +2,51 @@
 
 Эта папка содержит готовые workflow-файлы для автоматической сборки Android APK.
 
-## 📂 Файлы
+## 📂 Структура проекта
 
-| Файл | Описание | Когда запускается |
-|------|----------|-------------------|
-| `android-ci.yml` | **Полный** — debug + release + GitHub Release | Push в main, PR, теги `v*` |
-| `build-debug-simple.yml` | **Минимальный** — только debug APK | Push в main, PR |
+```
+Share-screen-app/
+├── .github/
+│   └── workflows/
+│       ├── android-ci.yml           ← Полный (debug + release + GitHub Release)
+│       └── build-debug-simple.yml   ← Минимальный (только debug)
+├── app/
+│   ├── build.gradle
+│   ├── proguard-rules.pro
+│   └── src/main/
+│       ├── AndroidManifest.xml
+│       ├── java/com/example/screenmirror/
+│       │   ├── App.kt
+│       │   ├── MainActivity.kt
+│       │   ├── AirPlayService.kt
+│       │   ├── ConnectionState.kt
+│       │   ├── airplay/
+│       │   │   ├── AirPlayServer.kt
+│       │   │   ├── RtspHandler.kt
+│       │   │   ├── SDPParser.kt
+│       │   │   ├── MirrorConfig.kt
+│       │   │   └── PairingManager.kt
+│       │   ├── network/
+│       │   │   ├── MDNSAdvertiser.kt
+│       │   │   ├── RTPReceiver.kt
+│       │   │   └── RTPPacket.kt
+│       │   ├── codec/
+│       │   │   ├── H264Decoder.kt
+│       │   │   ├── AACDecoder.kt
+│       │   │   └── H264FrameAssembler.kt
+│       │   └── render/
+│       │       ├── VideoRenderer.kt
+│       │       └── AudioRenderer.kt
+│       └── res/
+├── build.gradle
+├── settings.gradle
+├── gradle.properties
+├── gradlew
+├── gradlew.bat
+├── gradle/wrapper/
+│   └── gradle-wrapper.properties
+└── .gitignore
+```
 
 ## 🚀 Быстрый старт
 
@@ -36,8 +75,6 @@ keytool -genkey -v \
   -alias screen-mirror
 ```
 
-Запомните пароль и alias!
-
 ### Шаг 2: Конвертируйте в base64
 
 ```bash
@@ -50,81 +87,50 @@ base64 -i release-key.jks | tr -d '\n' > keystore-base64.txt
 
 ### Шаг 3: Добавьте Secrets в GitHub
 
-Откройте: **GitHub → ваш репозиторий → Settings → Secrets and variables → Actions → New repository secret**
-
-Добавьте 4 секрета:
+**GitHub → ваш репозиторий → Settings → Secrets and variables → Actions → New repository secret**
 
 | Имя | Значение |
 |-----|----------|
 | `KEYSTORE_FILE` | Содержимое `keystore-base64.txt` |
-| `KEYSTORE_PASSWORD` | Пароль, который вы задали при создании keystore |
-| `KEY_ALIAS` | `screen-mirror` (или ваш alias) |
-| `KEY_PASSWORD` | Пароль ключа (обычно совпадает с keystore password) |
-
-### Шаг 4: Обновите build.gradle
-
-Убедитесь, что в `app/build.gradle` есть:
-
-```groovy
-android {
-    signingConfigs {
-        release {
-            storeFile file(System.getenv("KEYSTORE_FILE") ?: "release-key.jks")
-            storePassword System.getenv("KEYSTORE_PASSWORD")
-            keyAlias System.getenv("KEY_ALIAS")
-            keyPassword System.getenv("KEY_PASSWORD")
-        }
-    }
-    buildTypes {
-        release {
-            signingConfig signingConfigs.release
-        }
-    }
-}
-```
+| `KEYSTORE_PASSWORD` | Пароль keystore |
+| `KEY_ALIAS` | `screen-mirror` |
+| `KEY_PASSWORD` | Пароль ключа |
 
 ## 📦 Как создать релиз
 
 ```bash
-# Локально:
 git tag v1.0.0
 git push origin v1.0.0
+```
 
-# Результат:
-# ✅ GitHub Actions соберёт подписанный APK
-# ✅ Создаст GitHub Release
-# ✅ Прикрепит APK к релизу
-# ✅ Сгенерирует release notes автоматически
+Результат:
+- ✅ GitHub Actions соберёт подписанный APK
+- ✅ Создаст GitHub Release
+- ✅ Прикрепит APK к релизу
+- ✅ Сгенерирует release notes автоматически
+
+## ⚠️ Важно: Gradle Wrapper
+
+В этом проекте используется `gradle/actions/setup-gradle@v4`, который **не требует** наличия `gradle-wrapper.jar` в репозитории. Gradle скачивается автоматически при сборке.
+
+Если вы хотите использовать локальный `./gradlew`, скачайте wrapper:
+
+```bash
+gradle wrapper --gradle-version 8.2
 ```
 
 ## 🔧 Troubleshooting
 
 | Проблема | Решение |
 |----------|---------|
-| `gradlew: Permission denied` | Добавьте `chmod +x gradlew` в workflow |
-| `SDK location not found` | Убедитесь что `local.properties` в `.gitignore` |
-| `Keystore decode failed` | Проверьте что `KEYSTORE_FILE` — это base64 без переносов строк |
+| `gradlew: Permission denied` | `chmod +x gradlew` |
+| `SDK location not found` | Добавьте `local.properties` (в `.gitignore`) |
+| `Keystore decode failed` | Проверьте что `KEYSTORE_FILE` — base64 без переносов |
 | `SigningConfig not found` | Проверьте `build.gradle` и имена Secrets |
-| Сборка занимает >15 мин | Добавьте кэширование Gradle (уже есть в `android-ci.yml`) |
-
-## ⚡ Полезные команды
-
-```bash
-# Посмотреть статус workflow:
-gh run list
-
-# Посмотреть логи конкретного запуска:
-gh run view <run-id> --log
-
-# Перезапустить workflow:
-gh workflow run android-ci.yml
-
-# Скачать артефакт:
-gh run download <run-id>
-```
+| Сборка >15 мин | Кэш Gradle уже включён в workflow |
 
 ## 📚 Документация
 
+- [gradle/actions/setup-gradle](https://github.com/gradle/actions)
 - [GitHub Actions для Android](https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-gradle)
 - [Подписание Android приложений](https://developer.android.com/studio/publish/app-signing)
-- [softprops/action-gh-release](https://github.com/softprops/action-gh-release)

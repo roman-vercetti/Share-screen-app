@@ -1,9 +1,6 @@
 # ============================================================
 # Минимальный workflow — только Debug APK
 # ============================================================
-# Используйте этот файл, если вам НЕ нужна подписанная сборка.
-# Просто копируйте в .github/workflows/ и пушьте.
-# ============================================================
 
 name: Build Debug APK
 
@@ -26,21 +23,13 @@ jobs:
           java-version: "17"
           distribution: "temurin"
 
-      - name: Cache Gradle packages
-        uses: actions/cache@v4
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
         with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', 'buildSrc/**/Versions.kt', 'buildSrc/**/Dependencies.kt', 'gradle/*.versions.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-
-      - name: Grant execute permission
-        run: chmod +x gradlew
+          gradle-version: "8.2"
 
       - name: Build Debug APK
-        run: ./gradlew assembleDebug
+        run: gradle assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
