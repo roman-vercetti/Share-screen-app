@@ -25,6 +25,7 @@ class H264Decoder {
         }
 
         codec = MediaCodec.createDecoderByType(MediaFormat.MIMETYPE_VIDEO_AVC)
+        // configure() принимает nullable Surface — передаём как есть
         codec!!.configure(format, surface, null, 0)
         codec!!.start()
         isRunning = true
@@ -66,7 +67,11 @@ class H264Decoder {
     fun setSurface(newSurface: Surface?) {
         surface = newSurface
         try {
-            codec?.setOutputSurface(newSurface)
+            // setOutputSurface() требует @NonNull Surface —
+            // используем ?.let для безопасной обработки nullable
+            newSurface?.let { nonNullSurface ->
+                codec?.setOutputSurface(nonNullSurface)
+            }
         } catch (e: Exception) {
             Log.e(TAG, "Ошибка установки Surface", e)
         }

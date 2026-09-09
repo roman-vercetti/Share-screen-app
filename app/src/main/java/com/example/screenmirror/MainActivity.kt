@@ -4,13 +4,14 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.view.SurfaceHolder
+import android.view.SurfaceView
 import android.view.View
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var surfaceView: android.widget.SurfaceView
+    private lateinit var surfaceView: SurfaceView
     private lateinit var statusText: TextView
     private lateinit var overlay: View
 
@@ -18,9 +19,9 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        surfaceView = findViewById(R.id.surfaceView)
-        statusText = findViewById(R.id.statusText)
-        overlay = findViewById(R.id.overlay)
+        surfaceView = findViewById<SurfaceView>(R.id.surfaceView)
+        statusText = findViewById<TextView>(R.id.statusText)
+        overlay = findViewById<View>(R.id.overlay)
 
         // Запускаем фоновый сервис
         val serviceIntent = Intent(this, AirPlayService::class.java)
