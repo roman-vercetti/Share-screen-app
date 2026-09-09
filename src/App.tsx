@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-type Tab = 'overview' | 'architecture' | 'airplay' | 'receiver' | 'renderer' | 'build' | 'code' | 'apk';
+type Tab = 'overview' | 'architecture' | 'airplay' | 'receiver' | 'renderer' | 'build' | 'code' | 'apk' | 'cicd';
 
 function App() {
   const [activeTab, setActiveTab] = useState<Tab>('overview');
@@ -15,6 +15,7 @@ function App() {
     { id: 'build', label: 'Сборка', icon: 'fa-hammer' },
     { id: 'code', label: 'Код', icon: 'fa-code' },
     { id: 'apk', label: 'Сборка APK', icon: 'fa-box-archive' },
+    { id: 'cicd', label: 'CI/CD', icon: 'fa-gears' },
   ];
 
   return (
@@ -70,6 +71,7 @@ function App() {
         {activeTab === 'build' && <BuildSection />}
         {activeTab === 'code' && <CodeSection codeTab={codeTab} setCodeTab={setCodeTab} />}
         {activeTab === 'apk' && <ApkBuildSection />}
+        {activeTab === 'cicd' && <CICDSection />}
       </main>
 
       {/* Footer */}
@@ -2375,6 +2377,853 @@ adb install app-debug.apk`}
     </div>
   );
 }
+
+function CICDSection() {
+  const [cicdTab, setCicdTab] = useState<string>('basic');
+
+  const cicdTabs = [
+    { id: 'basic', label: 'Базовый workflow', icon: 'fa-play' },
+    { id: 'signed', label: 'Подписанный Release', icon: 'fa-signature' },
+    { id: 'release', label: 'Авто-релизы', icon: 'fa-tag' },
+    { id: 'secrets', label: 'Secrets', icon: 'fa-key' },
+    { id: 'optimize', label: 'Оптимизации', icon: 'fa-bolt' },
+    { id: 'full', label: 'Полный файл', icon: 'fa-file-code' },
+  ];
+
+  return (
+    <div className="space-y-8">
+      <h2 className="text-2xl font-bold flex items-center gap-3">
+        <i className="fas fa-gears text-cyan-400"></i>
+        GitHub Actions — CI/CD
+      </h2>
+
+      {/* Intro */}
+      <div className="bg-gradient-to-br from-cyan-900/30 to-blue-900/30 rounded-2xl p-8 border border-cyan-700/30">
+        <p className="text-gray-300 text-lg leading-relaxed">
+          Настройте автоматическую сборку APK при каждом push в репозиторий. 
+          GitHub Actions бесплатно собирает приложение в облаке и предоставляет готовый .apk для скачивания.
+        </p>
+        <div className="grid md:grid-cols-3 gap-4 mt-6">
+          <div className="bg-gray-900/50 rounded-lg p-4 text-center">
+            <i className="fas fa-code-branch text-2xl text-cyan-400 mb-2"></i>
+            <div className="text-sm text-gray-400">Push в main</div>
+            <div className="text-xs text-gray-500">→ Сборка debug APK</div>
+          </div>
+          <div className="bg-gray-900/50 rounded-lg p-4 text-center">
+            <i className="fas fa-tag text-2xl text-purple-400 mb-2"></i>
+            <div className="text-sm text-gray-400">Создание тега v*</div>
+            <div className="text-xs text-gray-500">→ Подписанный release APK</div>
+          </div>
+          <div className="bg-gray-900/50 rounded-lg p-4 text-center">
+            <i className="fas fa-download text-2xl text-green-400 mb-2"></i>
+            <div className="text-sm text-gray-400">GitHub Release</div>
+            <div className="text-xs text-gray-500">→ APK прикреплён к релизу</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Structure */}
+      <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+        <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+          <i className="fas fa-folder-tree text-yellow-400"></i>
+          Структура файлов в проекте
+        </h3>
+        <div className="bg-gray-900 rounded-lg p-4 font-mono text-sm">
+          <pre className="text-gray-300">{`your-android-project/
+├── app/
+│   ├── build.gradle
+│   └── src/
+├── .github/
+│   └── workflows/
+│       ├── build-debug.yml      ← Debug сборка на каждый push
+│       ├── build-release.yml    ← Release сборка при тегах
+│       └── build-signed.yml     ← Подписанная сборка (опционально)
+├── .gitignore
+├── build.gradle
+├── gradlew
+├── gradlew.bat
+├── local.properties             ← НЕ коммитить!
+└── settings.gradle`}</pre>
+        </div>
+        <p className="text-gray-400 text-sm mt-3">
+          Создайте папку <code className="bg-gray-700 px-1.5 py-0.5 rounded text-cyan-300">.github/workflows/</code> в корне проекта и добавьте туда YAML-файлы.
+        </p>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex flex-wrap gap-2">
+        {cicdTabs.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setCicdTab(tab.id)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+              cicdTab === tab.id
+                ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-600/30'
+                : 'bg-gray-700 text-gray-400 hover:text-white hover:bg-gray-600'
+            }`}
+          >
+            <i className={`fas ${tab.icon} text-xs`}></i>
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Content */}
+      <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
+        {cicdTab === 'basic' && (
+          <div className="p-6 space-y-4">
+            <h3 className="text-lg font-bold flex items-center gap-2">
+              <i className="fas fa-play text-cyan-400"></i>
+              Базовый workflow — сборка debug APK
+            </h3>
+            <p className="text-gray-300">
+              Этот файл запускается при каждом push в ветку <code className="bg-gray-700 px-1 rounded">main</code> и при каждом pull request. 
+              Собирает debug APK и сохраняет его как артефакт.
+            </p>
+            <div className="bg-gray-900 rounded-lg p-2">
+              <div className="flex items-center justify-between px-3 py-2 border-b border-gray-700">
+                <span className="text-sm text-gray-400 font-mono">.github/workflows/build-debug.yml</span>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(BASIC_WORKFLOW);
+                  }}
+                  className="text-xs bg-gray-700 hover:bg-gray-600 text-gray-300 px-2 py-1 rounded transition-colors"
+                >
+                  <i className="fas fa-copy mr-1"></i>Копировать
+                </button>
+              </div>
+              <pre className="p-4 overflow-x-auto text-sm leading-relaxed">
+                <code className="text-gray-300">{BASIC_WORKFLOW}</code>
+              </pre>
+            </div>
+            <div className="bg-green-900/20 border border-green-700/50 rounded-lg p-4">
+              <p className="text-green-400 text-sm flex items-start gap-2">
+                <i className="fas fa-check-circle mt-0.5"></i>
+                <span>
+                  <b>Что делает:</b> Собирает debug APK при каждом push в main и PR. 
+                  APK можно скачать со вкладки "Actions" → конкретный workflow run → Artifacts.
+                </span>
+              </p>
+            </div>
+          </div>
+        )}
+
+        {cicdTab === 'signed' && (
+          <div className="p-6 space-y-4">
+            <h3 className="text-lg font-bold flex items-center gap-2">
+              <i className="fas fa-signature text-purple-400"></i>
+              Подписанный Release APK
+            </h3>
+            <p className="text-gray-300">
+              Для сборки подписанного APK нужно передать keystore через GitHub Secrets. 
+              Keystore хранится в base64-формате как секрет.
+            </p>
+            <div className="bg-gray-900 rounded-lg p-2">
+              <div className="flex items-center justify-between px-3 py-2 border-b border-gray-700">
+                <span className="text-sm text-gray-400 font-mono">.github/workflows/build-signed.yml</span>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(SIGNED_WORKFLOW);
+                  }}
+                  className="text-xs bg-gray-700 hover:bg-gray-600 text-gray-300 px-2 py-1 rounded transition-colors"
+                >
+                  <i className="fas fa-copy mr-1"></i>Копировать
+                </button>
+              </div>
+              <pre className="p-4 overflow-x-auto text-sm leading-relaxed">
+                <code className="text-gray-300">{SIGNED_WORKFLOW}</code>
+              </pre>
+            </div>
+            <div className="bg-yellow-900/20 border border-yellow-700/50 rounded-lg p-4">
+              <p className="text-yellow-400 text-sm flex items-start gap-2">
+                <i className="fas fa-triangle-exclamation mt-0.5"></i>
+                <span>
+                  <b>Важно:</b> Перед запуском этого workflow нужно настроить Secrets в настройках репозитория 
+                  (см. вкладку "Secrets"). Без них сборка завершится ошибкой.
+                </span>
+              </p>
+            </div>
+          </div>
+        )}
+
+        {cicdTab === 'release' && (
+          <div className="p-6 space-y-4">
+            <h3 className="text-lg font-bold flex items-center gap-2">
+              <i className="fas fa-tag text-green-400"></i>
+              Автоматические релизы
+            </h3>
+            <p className="text-gray-300">
+              При создании Git-тега (например <code className="bg-gray-700 px-1 rounded">v1.0.0</code>) автоматически:
+            </p>
+            <ul className="text-gray-300 space-y-1 list-disc list-inside text-sm">
+              <li>Собирается подписанный release APK</li>
+              <li>Создаётся GitHub Release</li>
+              <li>APK прикрепляется к релизу</li>
+              <li>Генерируются release notes</li>
+            </ul>
+            <div className="bg-gray-900 rounded-lg p-2">
+              <div className="flex items-center justify-between px-3 py-2 border-b border-gray-700">
+                <span className="text-sm text-gray-400 font-mono">.github/workflows/build-release.yml</span>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(RELEASE_WORKFLOW);
+                  }}
+                  className="text-xs bg-gray-700 hover:bg-gray-600 text-gray-300 px-2 py-1 rounded transition-colors"
+                >
+                  <i className="fas fa-copy mr-1"></i>Копировать
+                </button>
+              </div>
+              <pre className="p-4 overflow-x-auto text-sm leading-relaxed">
+                <code className="text-gray-300">{RELEASE_WORKFLOW}</code>
+              </pre>
+            </div>
+            <div className="bg-gray-900 rounded-lg p-4">
+              <h4 className="font-bold text-sm text-green-400 mb-2">Как создать релиз:</h4>
+              <CodeBlock
+                language="bash"
+                code={`# Локально:
+git tag v1.0.0
+git push origin v1.0.0
+
+# Или через GitHub UI:
+# Releases → Draft a new release → Create new tag: v1.0.0
+
+# После этого GitHub Actions автоматически:
+# 1. Соберёт APK
+# 2. Создаст Release на GitHub
+# 3. Прикрепит app-release.apk к релизу`}
+              />
+            </div>
+          </div>
+        )}
+
+        {cicdTab === 'secrets' && (
+          <div className="p-6 space-y-4">
+            <h3 className="text-lg font-bold flex items-center gap-2">
+              <i className="fas fa-key text-amber-400"></i>
+              Настройка Secrets
+            </h3>
+            <p className="text-gray-300">
+              Для подписанных сборок нужно добавить секреты в настройки репозитория:
+            </p>
+            <div className="bg-gray-900 rounded-lg p-4">
+              <h4 className="font-bold text-sm text-amber-400 mb-2">Шаг 1: Создайте keystore локально</h4>
+              <CodeBlock
+                language="bash"
+                code={`# Генерируем keystore (выполнить один раз):
+keytool -genkey -v \\
+  -keystore release-key.jks \\
+  -keyalg RSA \\
+  -keysize 2048 \\
+  -validity 10000 \\
+  -alias screen-mirror \\
+  -storepass MyStrongPassword123 \\
+  -keypass MyStrongPassword123 \\
+  -dname "CN=Screen Mirror, OU=Dev, O=MyOrg, L=City, S=State, C=US"
+
+# Конвертируем в base64 для загрузки в GitHub:
+base64 release-key.jks > release-key-base64.txt
+# (на Windows: certutil -encode release-key.jks release-key-base64.txt)`}
+              />
+            </div>
+            <div className="bg-gray-900 rounded-lg p-4">
+              <h4 className="font-bold text-sm text-amber-400 mb-2">Шаг 2: Добавьте Secrets в GitHub</h4>
+              <ol className="space-y-2 text-sm text-gray-300 list-decimal list-inside">
+                <li>Откройте репозиторий на GitHub</li>
+                <li>Перейдите: <b>Settings → Secrets and variables → Actions</b></li>
+                <li>Нажмите <b>"New repository secret"</b> для каждого секрета:</li>
+              </ol>
+              <div className="mt-4 space-y-2">
+                <SecretRow name="KEYSTORE_FILE" value="Содержимое release-key-base64.txt (base64)" />
+                <SecretRow name="KEYSTORE_PASSWORD" value="MyStrongPassword123" />
+                <SecretRow name="KEY_ALIAS" value="screen-mirror" />
+                <SecretRow name="KEY_PASSWORD" value="MyStrongPassword123" />
+              </div>
+            </div>
+            <div className="bg-gray-900 rounded-lg p-4">
+              <h4 className="font-bold text-sm text-amber-400 mb-2">Шаг 3: Обновите build.gradle</h4>
+              <CodeBlock
+                language="groovy"
+                code={`android {
+    signingConfigs {
+        release {
+            // Keystore будет создан из секретов в CI
+            // Локально можно использовать keystore.properties
+            def keystoreProps = new Properties()
+            def keystoreFile = rootProject.file('keystore.properties')
+            if (keystoreFile.exists()) keystoreProps.load(new FileInputStream(keystoreFile))
+            
+            storeFile file(keystoreProps['storeFile'] ?: 'release-key.jks')
+            storePassword keystoreProps['storePassword'] ?: System.getenv("KEYSTORE_PASSWORD")
+            keyAlias keystoreProps['keyAlias'] ?: System.getenv("KEY_ALIAS")
+            keyPassword keystoreProps['keyPassword'] ?: System.getenv("KEY_PASSWORD")
+        }
+    }
+    
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+}`}
+              />
+            </div>
+            <div className="bg-yellow-900/20 border border-yellow-700/50 rounded-lg p-4">
+              <p className="text-yellow-400 text-sm flex items-start gap-2">
+                <i className="fas fa-shield-halved mt-0.5"></i>
+                <span>
+                  <b>Безопасность:</b> Никогда не коммитьте .jks файл и пароли в Git! 
+                  Секреты GitHub шифруются и недоступны из PR'ов с fork'ов.
+                </span>
+              </p>
+            </div>
+          </div>
+        )}
+
+        {cicdTab === 'optimize' && (
+          <div className="p-6 space-y-4">
+            <h3 className="text-lg font-bold flex items-center gap-2">
+              <i className="fas fa-bolt text-yellow-400"></i>
+              Оптимизация сборки
+            </h3>
+
+            <div className="bg-gray-900 rounded-lg p-4">
+              <h4 className="font-bold text-sm text-yellow-400 mb-2">🚀 Кэширование Gradle (ускоряет сборку в 3-5 раз)</h4>
+              <CodeBlock
+                language="yaml"
+                code={`- name: Cache Gradle packages
+  uses: actions/cache@v4
+  with:
+    path: |
+      ~/.gradle/caches
+      ~/.gradle/wrapper
+    key: \${{ runner.os }}-gradle-\${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+    restore-keys: |
+      \${{ runner.os }}-gradle-`}
+              />
+            </div>
+
+            <div className="bg-gray-900 rounded-lg p-4">
+              <h4 className="font-bold text-sm text-yellow-400 mb-2">⚡ Параллельная сборка debug + release</h4>
+              <CodeBlock
+                language="yaml"
+                code={`jobs:
+  build-debug:
+    runs-on: ubuntu-latest
+    steps:
+      - ... # сборка debug
+        run: ./gradlew assembleDebug
+
+  build-release:
+    runs-on: ubuntu-latest
+    needs: []  # параллельно с debug
+    steps:
+      - ... # сборка release
+        run: ./gradlew assembleRelease`}
+              />
+            </div>
+
+            <div className="bg-gray-900 rounded-lg p-4">
+              <h4 className="font-bold text-sm text-yellow-400 mb-2">📦 Matrix strategy — сборка под разные ABI</h4>
+              <CodeBlock
+                language="yaml"
+                code={`jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        abi: [arm64-v8a, armeabi-v7a, x86_64]
+    steps:
+      - name: Build APK for \${{ matrix.abi }}
+        run: |
+          ./gradlew assembleRelease \\
+            -Pabi=\${{ matrix.abi }}
+      
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: apk-\${{ matrix.abi }}
+          path: app/build/outputs/apk/release/*.apk`}
+              />
+            </div>
+
+            <div className="bg-gray-900 rounded-lg p-4">
+              <h4 className="font-bold text-sm text-yellow-400 mb-2">🔔 Уведомления о результатах</h4>
+              <CodeBlock
+                language="yaml"
+                code={`# Уведомление в Slack/Telegram при ошибке:
+- name: Notify on failure
+  if: failure()
+  uses: actions/github-script@v7
+  with:
+    script: |
+      const issue = await github.rest.issues.create({
+        owner: context.repo.owner,
+        repo: context.repo.repo,
+        title: '🔴 Build failed: ' + context.sha.substring(0, 7),
+        body: 'Build failed on branch ' + context.ref,
+        labels: ['bug', 'ci-failure']
+      });`}
+              />
+            </div>
+
+            <div className="bg-gray-900 rounded-lg p-4">
+              <h4 className="font-bold text-sm text-yellow-400 mb-2">📊 Размер APK в PR</h4>
+              <CodeBlock
+                language="yaml"
+                code={`- name: Comment APK size on PR
+  if: github.event_name == 'pull_request'
+  uses: actions/github-script@v7
+  with:
+    script: |
+      const fs = require('fs');
+      const apkPath = 'app/build/outputs/apk/debug/app-debug.apk';
+      const stats = fs.statSync(apkPath);
+      const sizeMB = (stats.size / 1024 / 1024).toFixed(2);
+      
+      github.rest.issues.createComment({
+        issue_number: context.issue.number,
+        owner: context.repo.owner,
+        repo: context.repo.repo,
+        body: \`📦 APK size: \${sizeMB} MB\`
+      });`}
+              />
+            </div>
+          </div>
+        )}
+
+        {cicdTab === 'full' && (
+          <div className="p-6 space-y-4">
+            <h3 className="text-lg font-bold flex items-center gap-2">
+              <i className="fas fa-file-code text-green-400"></i>
+              Полный файл — всё в одном
+            </h3>
+            <p className="text-gray-300">
+              Универсальный workflow, который делает всё: debug-сборку на push, release-сборку на тегах, 
+              подпись APK и публикацию GitHub Release.
+            </p>
+            <div className="bg-gray-900 rounded-lg p-2">
+              <div className="flex items-center justify-between px-3 py-2 border-b border-gray-700">
+                <span className="text-sm text-gray-400 font-mono">.github/workflows/android-ci.yml</span>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(FULL_WORKFLOW);
+                  }}
+                  className="text-xs bg-gray-700 hover:bg-gray-600 text-gray-300 px-2 py-1 rounded transition-colors"
+                >
+                  <i className="fas fa-copy mr-1"></i>Копировать
+                </button>
+              </div>
+              <pre className="p-4 overflow-x-auto text-sm leading-relaxed max-h-[600px]">
+                <code className="text-gray-300">{FULL_WORKFLOW}</code>
+              </pre>
+            </div>
+            <div className="bg-green-900/20 border border-green-700/50 rounded-lg p-4">
+              <p className="text-green-400 text-sm flex items-start gap-2">
+                <i className="fas fa-check-circle mt-0.5"></i>
+                <span>
+                  <b>Рекомендация:</b> Используйте этот файл как основу. 
+                  Просто скопируйте его в <code className="bg-gray-700 px-1 rounded">.github/workflows/android-ci.yml</code> и настройте secrets.
+                </span>
+              </p>
+            </div>
+            <div className="bg-gray-900 rounded-lg p-4">
+              <h4 className="font-bold text-sm text-green-400 mb-2">Быстрый старт (3 команды):</h4>
+              <CodeBlock
+                language="bash"
+                code={`# 1. Создайте папку для workflow:
+mkdir -p .github/workflows
+
+# 2. Скопируйте содержимое в файл:
+# (используйте кнопку "Копировать" выше)
+
+# 3. Запушьте в GitHub:
+git add .github/workflows/android-ci.yml
+git commit -m "Add GitHub Actions CI/CD"
+git push origin main
+
+# Готово! Теперь при каждом push будет собираться APK.
+# Проверьте: Actions → ваш workflow run → Artifacts`}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Quick reference */}
+      <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+        <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+          <i className="fas fa-list-check text-cyan-400"></i>
+          Чек-лист настройки
+        </h3>
+        <div className="grid md:grid-cols-2 gap-3">
+          <CheckItem text="Создать папку .github/workflows/" />
+          <CheckItem text="Добавить YAML файл workflow" />
+          <CheckItem text="Настроить Secrets (для release)" />
+          <CheckItem text="Добавить *.jks в .gitignore" />
+          <CheckItem text="Проверить что gradlew имеет +x права" />
+          <CheckItem text="Запушить изменения в main" />
+          <CheckItem text="Проверить вкладку Actions на GitHub" />
+          <CheckItem text="Скачать APK из Artifacts" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SecretRow({ name, value }: { name: string; value: string }) {
+  return (
+    <div className="flex items-center gap-3 bg-gray-800 rounded-lg p-3">
+      <code className="text-amber-300 font-mono text-sm font-bold">{name}</code>
+      <i className="fas fa-arrow-right text-gray-600"></i>
+      <span className="text-gray-400 text-sm">{value}</span>
+    </div>
+  );
+}
+
+function CheckItem({ text }: { text: string }) {
+  return (
+    <div className="flex items-center gap-3 bg-gray-700/30 rounded-lg p-3">
+      <i className="fas fa-square-check text-cyan-400"></i>
+      <span className="text-gray-300 text-sm">{text}</span>
+    </div>
+  );
+}
+
+// Workflow constants
+const BASIC_WORKFLOW = `# .github/workflows/build-debug.yml
+name: Build Debug APK
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    name: Build Debug APK
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: gradle
+
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+
+    - name: Build with Gradle
+      run: ./gradlew assembleDebug
+
+    - name: Upload Debug APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: ScreenMirror-Debug-\${{ github.sha }}
+        path: app/build/outputs/apk/debug/app-debug.apk
+        retention-days: 30`;
+
+const SIGNED_WORKFLOW = `# .github/workflows/build-signed.yml
+name: Build Signed Release APK
+
+on:
+  workflow_dispatch:  # Ручной запуск из UI
+  push:
+    branches: [ release/* ]
+
+jobs:
+  build:
+    name: Build Signed APK
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: gradle
+
+    - name: Decode Keystore
+      env:
+        KEYSTORE_FILE: \${{ secrets.KEYSTORE_FILE }}
+      run: |
+        echo "$KEYSTORE_FILE" | base64 --decode > release-key.jks
+
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+
+    - name: Build Signed Release APK
+      env:
+        KEYSTORE_PASSWORD: \${{ secrets.KEYSTORE_PASSWORD }}
+        KEY_ALIAS: \${{ secrets.KEY_ALIAS }}
+        KEY_PASSWORD: \${{ secrets.KEY_PASSWORD }}
+      run: |
+        ./gradlew assembleRelease \\
+          -Pandroid.injected.signing.store.file=release-key.jks \\
+          -Pandroid.injected.signing.store.password=$KEYSTORE_PASSWORD \\
+          -Pandroid.injected.signing.key.alias=$KEY_ALIAS \\
+          -Pandroid.injected.signing.key.password=$KEY_PASSWORD
+
+    - name: Upload Signed APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: ScreenMirror-Release-\${{ github.sha }}
+        path: app/build/outputs/apk/release/app-release.apk
+        retention-days: 30`;
+
+const RELEASE_WORKFLOW = `# .github/workflows/build-release.yml
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'  # Запуск при создании тега вида v1.0.0
+
+permissions:
+  contents: write  # Нужно для создания релиза
+
+jobs:
+  build:
+    name: Build Release APK
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: gradle
+
+    - name: Decode Keystore
+      env:
+        KEYSTORE_FILE: \${{ secrets.KEYSTORE_FILE }}
+      run: |
+        echo "$KEYSTORE_FILE" | base64 --decode > release-key.jks
+
+    - name: Grant execute permission
+      run: chmod +x gradlew
+
+    - name: Build Release APK
+      env:
+        KEYSTORE_PASSWORD: \${{ secrets.KEYSTORE_PASSWORD }}
+        KEY_ALIAS: \${{ secrets.KEY_ALIAS }}
+        KEY_PASSWORD: \${{ secrets.KEY_PASSWORD }}
+      run: ./gradlew assembleRelease
+
+    - name: Rename APK
+      run: |
+        mv app/build/outputs/apk/release/app-release.apk \\
+           ScreenMirror-\${{ github.ref_name }}.apk
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v2
+      with:
+        files: ScreenMirror-\${{ github.ref_name }}.apk
+        generate_release_notes: true
+        name: Release \${{ github.ref_name }}
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: \${{ secrets.GITHUB_TOKEN }}`;
+
+const FULL_WORKFLOW = `# .github/workflows/android-ci.yml
+# Универсальный workflow для Android проекта
+# - Debug сборка на каждый push
+# - Release сборка с подписью на тегах
+# - Автоматические GitHub Releases
+
+name: Android CI/CD
+
+on:
+  push:
+    branches: [ main, develop ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:  # Ручной запуск
+
+permissions:
+  contents: write
+
+env:
+  GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.parallel=true"
+
+jobs:
+  # ============================================
+  # JOB 1: Проверка кода (линтеры, тесты)
+  # ============================================
+  check:
+    name: Code Check
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: gradle
+    
+    - name: Grant execute permission
+      run: chmod +x gradlew
+    
+    - name: Run lint
+      run: ./gradlew lint || true
+    
+    - name: Run unit tests
+      run: ./gradlew test || true
+    
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results
+        path: |
+          app/build/reports/tests/
+          app/build/reports/lint/
+        retention-days: 7
+
+  # ============================================
+  # JOB 2: Сборка Debug APK
+  # ============================================
+  build-debug:
+    name: Build Debug APK
+    needs: check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: gradle
+    
+    - name: Grant execute permission
+      run: chmod +x gradlew
+    
+    - name: Build Debug APK
+      run: ./gradlew assembleDebug
+    
+    - name: Get APK info
+      id: apk-info
+      run: |
+        APK_PATH="app/build/outputs/apk/debug/app-debug.apk"
+        SIZE=$(du -h "$APK_PATH" | cut -f1)
+        echo "size=$SIZE" >> $GITHUB_OUTPUT
+        echo "📦 APK size: $SIZE"
+    
+    - name: Upload Debug APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: ScreenMirror-Debug
+        path: app/build/outputs/apk/debug/app-debug.apk
+        retention-days: 14
+
+  # ============================================
+  # JOB 3: Сборка подписанного Release APK
+  # ============================================
+  build-release:
+    name: Build Signed Release
+    needs: check
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: gradle
+    
+    - name: Decode Keystore
+      env:
+        KEYSTORE_BASE64: \${{ secrets.KEYSTORE_FILE }}
+      run: |
+        echo "$KEYSTORE_BASE64" | base64 --decode > release-key.jks
+        echo "✅ Keystore decoded successfully"
+    
+    - name: Grant execute permission
+      run: chmod +x gradlew
+    
+    - name: Build Release APK
+      env:
+        KEYSTORE_PASSWORD: \${{ secrets.KEYSTORE_PASSWORD }}
+        KEY_ALIAS: \${{ secrets.KEY_ALIAS }}
+        KEY_PASSWORD: \${{ secrets.KEY_PASSWORD }}
+      run: |
+        ./gradlew assembleRelease \\
+          -Pandroid.injected.signing.store.file=$(pwd)/release-key.jks \\
+          -Pandroid.injected.signing.store.password="$KEYSTORE_PASSWORD" \\
+          -Pandroid.injected.signing.key.alias="$KEY_ALIAS" \\
+          -Pandroid.injected.signing.key.password="$KEY_PASSWORD"
+    
+    - name: Rename APK with version
+      run: |
+        VERSION=\${{ github.ref_name }}
+        mv app/build/outputs/apk/release/app-release.apk \\
+           ScreenMirror-$VERSION.apk
+        echo "📦 Built: ScreenMirror-$VERSION.apk"
+    
+    - name: Upload Release APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: ScreenMirror-Release
+        path: ScreenMirror-*.apk
+        retention-days: 90
+
+  # ============================================
+  # JOB 4: Создание GitHub Release
+  # ============================================
+  create-release:
+    name: Create GitHub Release
+    needs: build-release
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    
+    steps:
+    - name: Download Release APK
+      uses: actions/download-artifact@v4
+      with:
+        name: ScreenMirror-Release
+    
+    - name: List files
+      run: ls -la
+    
+    - name: Create Release
+      uses: softprops/action-gh-release@v2
+      with:
+        files: ScreenMirror-*.apk
+        generate_release_notes: true
+        name: \${{ github.ref_name }}
+        draft: false
+        prerelease: \${{ contains(github.ref_name, '-beta') || contains(github.ref_name, '-alpha') }}
+      env:
+        GITHUB_TOKEN: \${{ secrets.GITHUB_TOKEN }}`;
 
 function StepCard({ number, title, color, children, isMain }: { number: number; title: string; color: string; children: React.ReactNode; isMain?: boolean }) {
   const borderColors: Record<string, string> = {
