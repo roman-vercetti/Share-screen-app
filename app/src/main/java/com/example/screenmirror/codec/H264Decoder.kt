@@ -25,7 +25,8 @@ class H264Decoder {
         }
 
         codec = MediaCodec.createDecoderByType(MediaFormat.MIMETYPE_VIDEO_AVC)
-        codec!!.configure(format, surface, null, 0)
+        val surfaceForConfig: Surface? = surface
+        codec!!.configure(format, surfaceForConfig, null, 0)
         codec!!.start()
         isRunning = true
 
