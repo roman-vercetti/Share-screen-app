@@ -1,18 +1,6 @@
 # ============================================================
 # Android CI/CD — универсальный workflow
 # ============================================================
-# Что делает:
-#   • Push в main/develop  → сборка debug APK + артефакт
-#   • Pull Request          → сборка debug APK + проверка
-#   • Push тега v*          → подписанный release APK + GitHub Release
-#   • workflow_dispatch     → ручной запуск из UI
-#
-# Требуемые Secrets (для release):
-#   KEYSTORE_FILE      — base64 от release-key.jks
-#   KEYSTORE_PASSWORD  — пароль keystore
-#   KEY_ALIAS          — alias ключа
-#   KEY_PASSWORD       — пароль ключа
-# ============================================================
 
 name: Android CI/CD
 
@@ -37,7 +25,8 @@ jobs:
     if: github.event_name == 'push' || github.event_name == 'pull_request'
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -46,27 +35,60 @@ jobs:
           distribution: "temurin"
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v3
         with:
           gradle-version: "8.2"
 
-      - name: Build Debug APK
-        run: gradle assembleDebug
+      - name: Verify Gradle installation
+        run: |
+          gradle --version
+          echo "✅ Gradle installed successfully"
 
-      - name: Get APK info
-        id: apk
+      - name: List project files
+        run: |
+          echo "📂 Project structure:"
+          ls -la
+          echo ""
+          echo "📂 App module:"
+          ls -la app/ || echo "❌ app/ directory not found"
+
+      - name: Build Debug APK
+        run: |
+          echo "🔨 Starting build..."
+          gradle assembleDebug --stacktrace --info || {
+            echo "❌ Build failed!"
+            echo "📋 Checking for common issues..."
+            if [ ! -f "build.gradle" ]; then
+              echo "  ❌ build.gradle not found"
+            fi
+            if [ ! -f "settings.gradle" ]; then
+              echo "  ❌ settings.gradle not found"
+            fi
+            if [ ! -d "app" ]; then
+              echo "  ❌ app/ directory not found"
+            fi
+            exit 1
+          }
+          echo "✅ Build completed successfully"
+
+      - name: Verify APK exists
         run: |
           APK="app/build/outputs/apk/debug/app-debug.apk"
           if [ -f "$APK" ]; then
             SIZE=$(du -h "$APK" | cut -f1)
             SHA256=$(sha256sum "$APK" | cut -d' ' -f1)
+            echo "✅ APK built successfully!"
+            echo "   Size: $SIZE"
+            echo "   SHA256: $SHA256"
             echo "size=$SIZE" >> $GITHUB_OUTPUT
             echo "sha256=$SHA256" >> $GITHUB_OUTPUT
-            echo "✅ APK built: $SIZE"
           else
-            echo "❌ APK not found!"
+            echo "❌ APK not found at $APK"
+            echo "📂 Checking build outputs:"
+            find app/build -name "*.apk" 2>/dev/null || echo "No APK files found"
             exit 1
           fi
+        id: apk
 
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
@@ -105,7 +127,7 @@ jobs:
           distribution: "temurin"
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v3
         with:
           gradle-version: "8.2"
 
@@ -126,7 +148,7 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
-          gradle assembleRelease \
+          gradle assembleRelease --stacktrace \
             -Pandroid.injected.signing.store.file=${{ github.workspace }}/release-key.jks \
             -Pandroid.injected.signing.store.password="$KEYSTORE_PASSWORD" \
             -Pandroid.injected.signing.key.alias="$KEY_ALIAS" \

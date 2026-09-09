@@ -16,19 +16,31 @@ class RtspHandler(
     private val TAG = "RtspHandler"
     private val sessionId = UUID.randomUUID().toString().take(8)
 
+    // RTSP методы (кастомные, т.к. Netty знает только HTTP)
+    private val METHOD_OPTIONS = HttpMethod.valueOf("OPTIONS")
+    private val METHOD_ANNOUNCE = HttpMethod.valueOf("ANNOUNCE")
+    private val METHOD_SETUP = HttpMethod.valueOf("SETUP")
+    private val METHOD_RECORD = HttpMethod.valueOf("RECORD")
+    private val METHOD_TEARDOWN = HttpMethod.valueOf("TEARDOWN")
+    private val METHOD_GET_PARAMETER = HttpMethod.valueOf("GET_PARAMETER")
+    private val METHOD_SET_PARAMETER = HttpMethod.valueOf("SET_PARAMETER")
+    private val METHOD_PAUSE = HttpMethod.valueOf("PAUSE")
+    private val METHOD_FLUSH = HttpMethod.valueOf("FLUSH")
+
     override fun channelRead0(ctx: ChannelHandlerContext, request: FullHttpRequest) {
         val uri = request.uri()
         val method = request.method()
         Log.d(TAG, "Запрос: $method $uri")
 
         when (method) {
-            HttpMethod.OPTIONS -> handleOptions(ctx, request)
-            HttpMethod.ANNOUNCE -> handleAnnounce(ctx, request)
-            HttpMethod.SETUP -> handleSetup(ctx, request)
-            HttpMethod.GET_PARAMETER -> handleKeepAlive(ctx, request)
-            HttpMethod.SET_PARAMETER -> handleSetParameter(ctx, request)
-            HttpMethod.RECORD -> handleRecord(ctx, request)
-            HttpMethod.TEARDOWN -> handleTeardown(ctx, request)
+            METHOD_OPTIONS -> handleOptions(ctx, request)
+            METHOD_ANNOUNCE -> handleAnnounce(ctx, request)
+            METHOD_SETUP -> handleSetup(ctx, request)
+            METHOD_GET_PARAMETER -> handleKeepAlive(ctx, request)
+            METHOD_SET_PARAMETER -> handleSetParameter(ctx, request)
+            METHOD_RECORD -> handleRecord(ctx, request)
+            METHOD_TEARDOWN -> handleTeardown(ctx, request)
+            METHOD_PAUSE, METHOD_FLUSH -> handleOk(ctx, request)
             else -> sendError(ctx, request, HttpResponseStatus.METHOD_NOT_ALLOWED)
         }
     }
@@ -116,6 +128,15 @@ class RtspHandler(
         response.headers().set("CSeq", getCSeq(request))
         ctx.writeAndFlush(response)
         ctx.close()
+    }
+
+    private fun handleOk(ctx: ChannelHandlerContext, request: FullHttpRequest) {
+        val response = DefaultFullHttpResponse(
+            HttpVersion.HTTP_1_1,
+            HttpResponseStatus.OK
+        )
+        response.headers().set("CSeq", getCSeq(request))
+        ctx.writeAndFlush(response)
     }
 
     private fun sendError(ctx: ChannelHandlerContext, request: FullHttpRequest, status: HttpResponseStatus) {
