@@ -2403,6 +2403,32 @@ function CICDSection() {
           Настройте автоматическую сборку APK при каждом push в репозиторий. 
           GitHub Actions бесплатно собирает приложение в облаке и предоставляет готовый .apk для скачивания.
         </p>
+        
+        {/* Files already created */}
+        <div className="mt-6 bg-green-900/30 border border-green-700/50 rounded-xl p-5">
+          <div className="flex items-start gap-3">
+            <i className="fas fa-check-circle text-green-400 text-xl mt-0.5"></i>
+            <div>
+              <h4 className="font-bold text-green-400 mb-2">✅ Файлы уже созданы в проекте!</h4>
+              <p className="text-gray-300 text-sm mb-3">
+                Workflow-файлы уже добавлены в ваш проект. Просто скопируйте их в свой Android-репозиторий:
+              </p>
+              <div className="bg-gray-900 rounded-lg p-3 font-mono text-xs space-y-1">
+                <div className="text-green-400">.github/</div>
+                <div className="text-gray-300 pl-4">├── README.md <span className="text-gray-500">← инструкция по настройке</span></div>
+                <div className="text-gray-300 pl-4">└── workflows/</div>
+                <div className="text-cyan-300 pl-8">├── android-ci.yml <span className="text-gray-500">← полный (debug + release + GitHub Release)</span></div>
+                <div className="text-cyan-300 pl-8">└── build-debug-simple.yml <span className="text-gray-500">← минимальный (только debug)</span></div>
+              </div>
+              <div className="mt-3 bg-gray-900 rounded-lg p-3">
+                <div className="text-sm text-gray-400 mb-1">Скопируйте в свой Android-проект:</div>
+                <code className="text-xs text-green-300">
+                  cp -r .github/ /путь/к/вашему/android-проекту/
+                </code>
+              </div>
+            </div>
+          </div>
+        </div>
         <div className="grid md:grid-cols-3 gap-4 mt-6">
           <div className="bg-gray-900/50 rounded-lg p-4 text-center">
             <i className="fas fa-code-branch text-2xl text-cyan-400 mb-2"></i>
