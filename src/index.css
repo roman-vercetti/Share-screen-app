@@ -1,1 +1,26 @@
 @import "tailwindcss";
+
+/* Custom scrollbar hide utility */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Code block styling */
+pre code {
+  font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', monospace;
+  tab-size: 2;
+}
+
+/* Smooth transitions */
+* {
+  scroll-behavior: smooth;
+}
+
+/* Custom selection color */
+::selection {
+  background-color: rgba(59, 130, 246, 0.3);
+}
